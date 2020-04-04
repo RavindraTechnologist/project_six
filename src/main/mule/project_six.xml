@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:salesforce="http://www.mulesoft.org/schema/mule/salesforce"
+	xmlns:file="http://www.mulesoft.org/schema/mule/file"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd
+http://www.mulesoft.org/schema/mule/salesforce http://www.mulesoft.org/schema/mule/salesforce/current/mule-salesforce.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<file:config name="File_Config" doc:name="File Config" doc:id="6c166ddf-9c19-4384-96c7-83fbc9f6a6f5" >
+		<file:connection workingDir="C:\Users\ravyadav0\AnypointStudio\project_six" />
+	</file:config>
+	<salesforce:sfdc-config name="Salesforce_Config" doc:name="Salesforce Config" doc:id="bea36d54-ef74-4920-8956-76ea8d7ef10d" >
+		<salesforce:cached-basic-connection username="rinkukhosya@gmail.com" password="1Account@salesforce" securityToken="wrUzNqZyOSgicAIw3PWPpetqL" />
+	</salesforce:sfdc-config>
+	<file:config name="File_Config1" doc:name="File Config" doc:id="3f24dadb-6fff-4724-90b6-491800fe34a6" >
+		<file:connection workingDir="C:\Users\ravyadav0\AnypointStudio\project_six" />
+	</file:config>
+	<flow name="project_sixFlow" doc:id="4cc066f0-64ef-4203-9f07-2858c248ab68" >
+		<file:listener doc:name="On New or Updated File" doc:id="312d238c-fac0-4ca9-951b-23892f940fbc" directory="src\main\resources\examples" config-ref="File_Config" autoDelete="true" moveToDirectory="ouput" applyPostActionWhenFailed="false">
+			<scheduling-strategy >
+				<fixed-frequency frequency="30000"/>
+			</scheduling-strategy>
+		</file:listener>
+		<ee:transform doc:name="Transform Message" doc:id="8fcae90e-2d1a-48c5-afd9-9e8cc2c1f101" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/csv headerLineNumber = 0 , header = true
+---
+payload map ( payload01 , indexOfPayload01 ) -> {
+	" UserName": payload01.DisplayName,
+	FirstName: payload01." UserName",
+	LastName: payload01.FirstName,
+	DisplayName: payload01." UserName",
+	MobilePhone: payload01.OfficePhone,
+	Address: payload01.CountryORRegion,
+	City: payload01.Department,
+	StateORProvince: payload01.Fax,
+	CountryORRegion: payload01.StateORProvince
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="6258bbc2-2e14-4593-bcb7-0cbf7b41e2c4" />
+		<salesforce:create doc:name="Create" doc:id="8ffce30b-8618-4d19-8cf6-36d09545b217" config-ref="Salesforce_Config" type="Contact"/>
+		<ee:transform doc:name="Transform Message" doc:id="8c1cd805-d1be-4631-a5e4-c32a1570347a" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+{
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="97d36d54-0b1f-4503-b23f-226bea1545db" />
+		<error-handler >
+			<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="ac612c00-0162-4f49-b3a0-7af88ee527b8" type="SALESFORCE:INVALID_SESSION, SALESFORCE:RETRY_EXHAUSTED, EXPRESSION">
+				<ee:transform doc:name="Transform Message" doc:id="4c8ee685-b932-4937-934b-21c710330565" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+{
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</on-error-continue>
+		</error-handler>
+	</flow>
+</mule>

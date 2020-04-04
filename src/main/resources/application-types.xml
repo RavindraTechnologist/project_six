@@ -1,0 +1,35 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<types:mule xmlns:types="http://www.mulesoft.org/schema/mule/types">
+  <types:catalog>
+    <types:type name="account" format="csv">
+      <types:shape format="weave" example="input/account.csv"><![CDATA[%dw 2.0
+
+type account = Array<{|  Id: String,   " UserName": String,   FirstName: String,   LastName: String,   DisplayName: String,   JobTitle: String,   Department: String,   OfficeNumber: String,   OfficePhone: String,   MobilePhone: String,   Fax: String,   Address: String,   City: String,   StateORProvince: String,   "ZIPORPostal Code": String,   CountryORRegion: String|}>
+
+]]></types:shape>
+      <types:properties>
+        <types:property name="headerLineNumber" value="0"/>
+        <types:property name="header" value="true"/>
+        <types:property name="isQuotedString" value="false"/>
+      </types:properties>
+    </types:type>
+    <types:type name="sampledata" format="java">
+      <types:shape format="raml"><![CDATA[#%RAML 1.0 DataType
+type: string]]></types:shape>
+    </types:type>
+  </types:catalog>
+  <types:enrichment select="#8fcae90e-2d1a-48c5-afd9-9e8cc2c1f101">
+    <types:processor-declaration>
+      <types:input-event>
+        <types:message>
+          <types:payload type="account[]"/>
+        </types:message>
+      </types:input-event>
+      <types:output-event>
+        <types:message>
+          <types:payload type="account[]"/>
+        </types:message>
+      </types:output-event>
+    </types:processor-declaration>
+  </types:enrichment>
+</types:mule>
